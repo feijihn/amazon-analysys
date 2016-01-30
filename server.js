@@ -14,21 +14,21 @@ var findById = function(array, id, callback){
 	});
 }
 
+var request = require('request');
+
 app.set('port', (process.env.PORT || 3000));
 
 app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.get('/api/tasks', function(req, res) {
-	fs.readFile(DB_FILE, function(err, data) {
-		if (err) {
-			console.error(err);
-			process.exit(1);
+app.post('/data', function(req, res) {
+	request('http://completion.amazon.com/search/complete?method=completion&mkt=1&client=amazon-search-ui&x=String&search-alias=aps&q=' + req.body.keyword + '&qs=&cf=1&noCacheIE=1454112726317&fb=1&sc=1&', function (error, response, body) {
+		if (!error && response.statusCode == 200) {
+			console.log(body)
 		}
-		res.setHeader('Cache-Control', 'no-cache');
-		res.json(JSON.parse(data));
-	});
+	})
+
 });
 
 app.post('/api/tasks', function(req, res) {
