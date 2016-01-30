@@ -1,0 +1,11 @@
+{
+  "name": "Todolist made with react.js and node.js and material-ui",
+  "description": "",
+  "keywords": [ "react", "reactjs", "todolist", "education" ],
+  "repository": "https://github.com/feijihn/todolist_react,
+  "success_url": "/",
+  "env" : {
+    "BUILDPACK_URL": "https://github.com/heroku/heroku-buildpack-nodejs.git"
+  }
+}
+
