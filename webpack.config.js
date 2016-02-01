@@ -20,11 +20,14 @@ var config = {
    loaders : [
      {
        test : /\.jsx?/,
-       include : APP_DIR,
-       loader : 'jsx-loader'
-     }
-   ]
-  }
+			 include : APP_DIR,
+			 loader : 'jsx-loader'
+		 },
+		 { test: /\.json$/,
+			 loader: "json-loader" 
+		 }
+	 ]
+	},
 };
 
 module.exports = config;
