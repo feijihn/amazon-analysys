@@ -7,55 +7,165 @@ var app = express();
 var request = require('request');
 var DB_FILE = path.join(__dirname, '/data/data.json');
 var aws = require('aws-lib');
-var USlocaleIndexes_salesrank = [ 'UnboxVideo', 'Appliances', 'ArtsAndCrafts', 'Automotive', 'Baby', 'Beauty', 'Books', 'Music', 'Wireless', 'Collectibles', 'PCHardware', 'MP3Downloads', 'Electronics', 'GiftCards', 'Grocery', 'HealthPersonalCare', 'HomeGarden', 'Industrial', 'KindleStore', 'MusicalInstruments', 'OfficeProducts', 'LawnAndGarden', 'PetSupplies', 'Software', 'SportingGoods', 'Tools', 'Toys', 'VideoGames'] // All Amazon Indexes for US locale which are sortable by salesrank
+var USlocaleIndexes_salesrank = [ 'UnboxVideo', 'Appliances', 'ArtsAndCrafts', 'Automotive',	'Baby', 'Beauty', 'Books', 'Music', 'Wireless', 'Collectibles', 'PCHardware', 'MP3Downloads', 'Electronics', 'GiftCards', 'Grocery', 'HealthPersonalCare', 'HomeGarden', 'Industrial', 'KindleStore', 'MusicalInstruments', 'OfficeProducts', 'LawnAndGarden', 'PetSupplies', 'Software', 'SportingGoods', 'Tools', 'Toys', 'VideoGames'] // All Amazon Indexes for US locale which are sortable by salesrank<]*/
 var USlocaleIndexes_reviewrank = ['Appliances', 'MobileApps', 'ArtsAndCrafts', 'Books', 'Wireless', 'Fashion', 'FashionBaby', 'FashionBoys', 'FashionGirls', 'FashionMen', 'FashionWomen', 'Collectibles', 'Electronics', 'GiftCards', 'KindleStore', 'Luggage', 'Magazines', 'Movies', 'OfficeProducts', 'LawnAndGarden', 'PetSupplies', 'Pantry', 'Wine']
 var data = {}
-var prodAdv = aws.createProdAdvClient("AKIAJO23CANB5S2IRKJA", "gLTaWQNjqWvTu6YIRjTuVdKFuNnkglABktXKJ8KZ", "none"); 
+var MostSR = 0
+var MostTotal = 0
+var MostTotal_Index = ''
+var flagTR = true
+var resFlag = false
+var flagSR = true
+var awsConnections = [
+	aws.createProdAdvClient("AKIAJO23CANB5S2IRKJA", "gLTaWQNjqWvTu6YIRjTuVdKFuNnkglABktXKJ8KZ", "none"),
+	aws.createProdAdvClient("AKIAJ4GQCRXZHPU5TNRQ", "I6UONgJuk7MtSua+PXZXg/6gGnBB4zGn57lhUEQE", "none"), 
+	aws.createProdAdvClient("AKIAJ4FXGBTX3CNWZFNA", "MVrDOr5Xb1s5KlzMV3/24dUQL0PifxgkibjV2MIh", "none"),
+	aws.createProdAdvClient("AKIAJV2DXIQAXOH26M5Q", "590Iq35TzgvGvComNmaXj4NqlXkibUdHe5tIvwr1", "none"), 
+	aws.createProdAdvClient("AKIAJJV74TF7WKMXMPEQ", "KZjc9haCmSzFiCUgd4fd5kNg6URodrPoHSbgj+fN", "none"),
+	aws.createProdAdvClient("AKIAILURQN3CUZGAMMAA", "VbtlUEndo4gvJitctgwc3c9LjlBbDuYay01TO4Ud", "none"), 
+	aws.createProdAdvClient("AKIAJQDACO7GNZRRRGHA", "25ogxlpAgl6fS+znJB8llOMbVyKb7hVzYS+UNpK+", "none"),
+	aws.createProdAdvClient("AKIAJCQJXJHVYSEWR76A", "+wiF4WMRbsDssa41zyK6VWHdinhJvnX9dkOUTUG9", "none"), 
+	aws.createProdAdvClient("AKIAIJFBFXBFV7SE6XOA", "udqOKtEe3BcJ3r4spe5VNkw3aiAZYRkIQ52LEAUo", "none"), 
+	aws.createProdAdvClient("AKIAJXA27KHGBIQNVTIA", "nxPqSq2jIriIVZ4B+0MA5lfYrHPqTo4TsSDzbgUU", "none"),
+	aws.createProdAdvClient("AKIAJZSGSF5H2CZS6Z7A", "iED3pTkIkI2mmCfCiAIByM++Zpe8FvnF1xW/jsME", "none"),
+	aws.createProdAdvClient("AKIAJXNR3BLVHXSWPBJQ", "5KaggsceIDB1U/5BtCCu5SOLwpDMIduZNiJs3j4N", "none"),
+	aws.createProdAdvClient("AKIAIR5Y62N4L3HIRBEA", "/9GIQKOBfQ+bcBkTLpW/BHe2XjNySAHxXPHHFfAX", "none"),
+	aws.createProdAdvClient("AKIAJLXX52VCF5WR4COQ", "KW9m/LifPMLe7kmekptbwkQX69zn3a20oy0DiOIM", "none"),
+	aws.createProdAdvClient("AKIAIH5UAERFHQXTDWZA", "0tEjaVN7zQ8KvjCiSbqr5eIBGLxlyzmEEyHtEtDn", "none"),
+	aws.createProdAdvClient("AKIAIAIBVF32OF6BTDIA", "8g7fuZevLbrka2KbLlInSxB759ph3AtWb7XoIFrd", "none"),
+	aws.createProdAdvClient("AKIAIAQY2HABS6Z7LZZQ", "pqe9XtwyCcTTUgoQo5JDzOOQCr6yhzN2Z5k3ivun", "none"),
+	aws.createProdAdvClient("AKIAJ2C6ZF2R5OYV7MCA", "sofMgtmpJK7SPHjdtmf/hudkq5fF741dh8/zgIBx", "none"),
+	aws.createProdAdvClient("AKIAIGFSQ5H6QIL6726A", "ZBx0fhmZJvF1ocDXuRWEMVTU87MjnCbt3J4Tv6mm", "none"),
+	aws.createProdAdvClient("AKIAIKGMQJALKDHPCYJQ", "1SVjfuWsBAHJ21b5dJjO8RdigGlT04nrg3knKNRQ", "none"),
+	aws.createProdAdvClient("AKIAJHI3AQTGEK7OCYFA", "vMMrj3M6zbilF5oC7dgWfg6mKCkErGwjjvJkzKnJ", "none"),
+	aws.createProdAdvClient("AKIAIY67B6B25LOFFW4A", "tIxLwp/vJWRBeTgw/kYAZVwkgpT//woD0gHrit9H", "none"),
+	aws.createProdAdvClient("AKIAIJDVQGLEY7UZAOWQ", "dJhS92vmvbJ8RwyiHsbanJwtBgEntb1+oqaksPMz", "none"),
+	aws.createProdAdvClient("AKIAIMWFY742DS5PFCIQ", "tNd1keHd7apX2RbBWKz8mbRa7q4OuETWPiAr4lLy", "none"),
+	aws.createProdAdvClient("AKIAJSPMBHQL2I7AUGLA", "a5DLkaKWpqrDb3y4zmq5E4ZmVdflmr0Oed4bH4WP", "none"),
+	aws.createProdAdvClient("AKIAI6V2MLZRFGQL5PBA", "zq/SzlmPpf0tSmv/7Z5efkiY0MMmhwDC/emB/8la", "none"),
+	aws.createProdAdvClient("AKIAJ3EJWKVSNLLVEDIQ", "ELNRuo+EA+6AMFGif9ZhJYdlwUziocVuI5SyqsJs", "none")
+] 
+
 //connect to Amazon Product Advertisement API with aws ID and aws Secret Key
 
-function initiateTimeOut(i, func, array, index, j) {
-setTimeout(function() { func(i, array, index, j) }, 1000);
+function initiateTimeOut(i, func, array, index, j, res) {
+	setTimeout(function() { func(i, array, index, j, res) }, 300);
 }
 
-function ReqAmazonWithTimeout_ALL(i, array){
-		console.log("Collecting TotalResults data...  [" + i + "/" + (array.length - 1) + "]")
-		var options = {SearchIndex: "All", Keywords: array[i]}
-		prodAdv.call("ItemSearch", options, function(err, result) {
-			if(typeof result.Items != 'undefined'){
-				data[array[i]] = {"TotalResults": result.Items.TotalResults, "MostCommonIndex": "", "HighestSalesRank": 0, "ReviewRank": 0}
-			}else{
-				console.error("Error: " + result.Error.Message)
-			}
-		});
-		i++
-		if(i < array.length){
-			initiateTimeOut(i, ReqAmazonWithTimeout_ALL, array)
+function ReqAmazonWithTimeout_ALL(i, array, index, j, res){
+	console.log("Collecting TotalResults data about " + array[i] + "...  [" + i + "/" + (array.length - 1) + "]")
+	var options = {SearchIndex: "All", Keywords: array[i]}
+	awsConnections[i].call("ItemSearch", options, function(err, result) {
+		if(typeof result.Items != 'undefined'){
+			data[array[i]] = {"TotalResults": result.Items.TotalResults, "MostCommonIndex": "", "HighestSalesRank": 0, "ReviewRank": 0}
+			i++
+				if(i < array.length){
+					initiateTimeOut(i, ReqAmazonWithTimeout_ALL, array, index, j, res)
+				}else{
+					ReqAmazonWithTimeout_SR(0, array, USlocaleIndexes_salesrank[0], 0, res)
+					fs.writeFile(DB_FILE, JSON.stringify(data, null, 4), function(err){
+						if(err) console.error(err);
+					})
+				}
+
 		}else{
-			console.log(data)
-			initiateTimeOut(0, ReqAmazonWithTimeout_SR, array, USlocaleIndexes_salesrank[0], 0)
-		}
+			console.error("Error: " + result.Error.Message)
+		}	
+	});
 }
-function ReqAmazonWithTimeout_SR(i, array, index, j){
-		console.log("Collecting SalesRank Data... [" + i + "/" + array.length + "]")
-		console.log("Index is " + index + "[" + j + "/" + (USlocaleIndexes_salesrank.length - 1)+ "]")
-		var MostResults = 0
-		var options = {SearchIndex: index, Keywords: array[i], ResponseGroup: "SalesRank", Sort: "salesrank"}
-		prodAdv.call("ItemSearch", options, function(err, result) {
-			if(typeof result.Items != 'undefined'){
-				console.log(result.Items.Item)
-			}else{
-				console.error("Error: " + result.Error.Message)
+function ReqAmazonWithTimeout_SR(i, array, index, j, res){
+	console.log("Collecting SalesRank Data about " + array[i] + "... [" + i + "/" + (array.length - 1) + "]")
+	console.log("Index is " + index + "[" + j + "/" + (USlocaleIndexes_salesrank.length - 1)+ "]")
+	var options = {SearchIndex: index, Keywords: array[i], ResponseGroup: "SalesRank", Sort: "salesrank"}
+	awsConnections[j%26].call("ItemSearch", options, function(err, result) {
+		/*console.log(JSON.stringify(result, null, 4))*/
+		if(typeof result.Items != 'undefined'){
+			if(typeof result.Items.Item != 'undefined'){
+				if(typeof result.Items.Item[0] != 'undefined'){
+					if(typeof result.Items.Item[0].SalesRank != 'undefined'){
+						var SR = parseInt(result.Items.Item[0].SalesRank)
+						var TR = parseInt(result.Items.TotalResults)
+						if (flagSR){
+							MostSR = SR
+							flagSR = false
+						}		
+						if (SR < MostSR && flagSR == false) {
+							MostSR = SR
+						}else{
+						}
+						if(flagTR){
+							MostTotal = TR
+							MostTotal_Index = index
+							flagTR = false
+						}
+						if (TR > MostTotal && flagTR == false){
+							MostTotal = TR
+							MostTotal_Index = index
+						}	
+					}
+				}else{
+					if(typeof result.Items.Item.SalesRank != 'undefined'){
+						var SR = parseInt(result.Items.Item.SalesRank)
+						var TR = parseInt(result.Items.TotalResults)
+						if (flagSR){
+							MostSR = SR
+							flagSR = false
+						}		
+						if (SR < MostSR && !flagSR) {
+							MostSR = SR							
+						}
+						if(flagTR){
+							MostTotal = TR
+							MostTotal_Index = index
+							flagTR = false
+						}
+						if (TR > MostTotal && !flagTR){
+							MostTotal = TR
+							MostTotal_Index = index
+						}	
+					}
+				}
 			}
-		});
-		i++
-		if(i < array.length){
-			initiateTimeOut(i, ReqAmazonWithTimeout_SR, array, index, j)
 		}else{
-			if(j < USlocaleIndexes_salesrank.length){
-				j++
-				initiateTimeOut(0, ReqAmazonWithTimeout_SR, array, USlocaleIndexes_salesrank[j], j)
-			}
+			console.error("Error: " + result.Error.Message)
 		}
+		j++
+			if(j < USlocaleIndexes_salesrank.length){
+				initiateTimeOut(i, ReqAmazonWithTimeout_SR, array, USlocaleIndexes_salesrank[j], j, res)
+			}else{
+				i++
+					if(i < array.length){
+						data[array[i-1]].HighestSalesRank = MostSR
+						data[array[i-1]].MostCommonIndex = MostTotal_Index 
+						MostSR = 0
+						MostTotal = 0
+						MostTotal_Index = ''
+						flagSR = true
+						flagTR = true
+						initiateTimeOut(i, ReqAmazonWithTimeout_SR, array, USlocaleIndexes_salesrank[j], 0, res)
+						fs.writeFile(DB_FILE, JSON.stringify(data, null, 4), function(err){
+							if(err) console.error(err);
+						})
+					}else{
+						data[array[i - 1]].HighestSalesRank = MostSR
+						data[array[i - 1]].MostCommonIndex = MostTotal_Index 
+						console.log(data[array[i - 1]])
+						MostSR = 0
+						MostTotal = 0
+						MostTotal_Index = ''
+
+						flagSR = false
+						flagTR = false
+						/*var jdata = JSON.stringify(data, null, 4)*/
+						res.send(data)
+						fs.writeFile(DB_FILE, JSON.stringify(data, null, 4), function(err){
+							if(err) console.error(err);
+						})
+					}
+			}
+
+	});
+
 }
 
 app.set('port', (process.env.PORT || 3000));
@@ -69,24 +179,22 @@ app.post('/data', function(req, res) {                                        //
 		if (!error && response.statusCode == 200) {
 			var resClipped = response.body.substring(12,response.body.length - 11)  //cut extra parts of amazon response 'completion = ' .. 'String();' for JSON to parse this properly
 			var jsonResult = JSON.parse(resClipped)																  //parsing amazon response
-			jsonResult = jsonResult[1]																					  	//[1] is the needed completion array
-			initiateTimeOut(0,ReqAmazonWithTimeout_ALL,jsonResult)
-						/*USlocaleIndexes_salesrank.forEach(function(el,j,arr){
-				jsonResult.forEach( function(el, i, jsonResult){                                         //Now call Amazon Product Advertisement API for every completion                                                                                                      with all indexes which are sortable by salesrank to retrieve maximu																																																	m salesrank
-					var options = {SearchIndex: arr[j], Keywords: jsonResult[i], ResponseGroup: "SalesRank", Sort:'salesrank'}
-					prodAdv.call("ItemSearch", options, function(err, result) {
-						if(typeof result.Items != 'undefined'){
-							console.log(result.Items)
-							[>data[jsonResult[i]].SRhi = result.Items.Item[0].SalesRank <]
-						}else{
-							console.error("Error: " + result.Error.Message)
+			jsonResult = jsonResult[1]																					  	//[1] is the needed completion array<]*/
+						console.log(jsonResult)
+						initiateTimeOut(0,ReqAmazonWithTimeout_ALL,jsonResult,'',0,res)                  //Starting requests to amazon with delays sadly :c
+						if(resFlag){
+							console.log('success')
 						}
-					});
-				});
 
-				});*/
-			};
-		});
+		};
+	});
+});
+app.get('/data', function(req,res){
+	fs.readFile(DB_FILE, function(err, data){
+		if(err) console.log(err);
+		data = JSON.parse(data)
+		res.send(data)
+	})
 });
 
 app.listen(app.get('port'), function() {

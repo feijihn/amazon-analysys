@@ -11,10 +11,29 @@ var Tr = require('reactable').Tr;
 
 
 var App = React.createClass({
+	getFreshData: function(){
+		$.ajax({
+			url: '/data',
+			dataType: 'json',
+			success: function(data){
+				this.setState({
+					data: $.makeArray(data)
+				});
+			}.bind(this),
+			error: function(xhr, status, err) {
+				console.error(this.props.url, status, err.toString());
+			}.bind(this)
+		})
+	},
 	getInitialState: function(){
 		return {
-			data: ['1','2']
+			data : [ '' ] 
 		}
+
+	},
+	componentDidMount: function(){
+		this.getFreshData
+		setInterval(this.getFreshData, 5000)
 	},
 	requestAmazon: function(input) {
 		$.ajax({
@@ -24,7 +43,7 @@ var App = React.createClass({
 			data: {"keyword" : input.toString()},
 			success: function (data) {
 				this.setState({
-					data: data
+					data: $.makeArray(data)
 				})	
 			}.bind(this), 
 			error: function(xhr, status, err) {
@@ -68,14 +87,18 @@ var ItemTable = React.createClass({
 	componentDidMount: function(){
 	},
 	render: function() {
-			var products = this.props.data.map(function(el, i, data) {
+			var products = Object.keys(this.props.data[0]).map( function(k, i, keys) {
+				console.log(this.props.data[0][k])
 				return (
-					<Tr>
-					<Td column="Product" data={data[i]} key={Date.now()}/>
+					<Tr key = {Date.now()}>
+					<Td column="Key Phrase" data = {k}/>
+					<Td column="Total Results" data={this.props.data[0][k].TotalResults}/>
+					<Td column="Most Items in Category" data={this.props.data[0][k].MostCommonIndex}/>
+					<Td column="Highest Sales Rank" data={this.props.data[0][k].HighestSalesRank}/>
 					</Tr>
 				);
 
-			});
+			}, this);
 		return(
 			<Table className="table">
 			{products}

@@ -1,8 +1,19 @@
 .paperE {
     text-align: center;
+		width: 100%;
+}
+
+#content {
+	width: 100%;
+	margin: 0;
+	padding: 0;
 }
 
 #searchFieldContainer {
 	margin-left: 5%;
 	margin-right: 5%;
+}
+
+tr {
+	text-align: left;
 }
