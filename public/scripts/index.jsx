@@ -60,7 +60,8 @@ var App = React.createClass({
 				list.push(data)
 				console.log(list)
 				this.setState({
-					data: $.makeArray(list)
+					data: $.makeArray(list),
+					queueOpen: false
 				});	
 			}.bind(this), 
 			error: function(xhr, status, err) {
@@ -74,6 +75,9 @@ var App = React.createClass({
 			queueOpen: !this.state.queueOpen
 		})
 	},
+	clearResults: function() {
+		this.refreshQueue()
+	},
 	render: function() { 
 		return (
 			<Paper className="paperE" zDepth={5}>
@@ -84,7 +88,7 @@ var App = React.createClass({
 				<FlatButton primary={true} label='Queue' onClick={this.toggleQueue}/>
 				</AppBar>
 				<div id="searchFieldContainer">
-					<SearchField onEnter={this.requestAmazon}/>
+					<SearchField onEnter={this.requestAmazon} onClear={this.clearResults}/>
 				</div>
 				<LeftNav open={this.state.queueOpen} openRight={true}>
 					<FlatButton primary={true} label='Close' onClick={this.toggleQueue}/>
@@ -110,11 +114,16 @@ var SearchField = React.createClass({
 			text: e.target.value
 		})
 	},
+	handleClear: function(){
+		list = [ '' ]
+		this.props.onClear()
+	},
 	render: function() {
 		return (
 			<div class = 'sf'>
 			<TextField fullWidth={true} onChange={this.handleChange}/>
 			<FlatButton label = 'Collect Data' onClick={this.handleInput}/>
+			<FlatButton label = 'Clear Data' onClick={this.handleClear}/>
 			</div>
 		)
 	}
@@ -163,7 +172,6 @@ var RequestQueue = React.createClass({
 			if(queue[k].status == 'processing'){
 								return (
 					<ListItem primaryText={k} key={randkey.generate(7)} onClick={this.handleClick} style={{backgroundColor : Color.lime300}}>
-					<LinearProgress mode="determinate" value={queue[k].progress} min={0} max={280}/>
 					</ListItem>
 				)
 			}	

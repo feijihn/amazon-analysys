@@ -1,2 +1,4 @@
-console.log()
-console.log(105708 < 1585)
+
+var str = "hel low21412";
+var result =/^[a-z|0-9|\s]+$/i.test(str);
+console.log(result); // true

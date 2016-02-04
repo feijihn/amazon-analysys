@@ -69,9 +69,19 @@ function continueJobs() {
 		queue = JSON.parse(q)
 		if(queue["__header"].status == 'processing'){
 			console.log("Resuming jobs left from previous lifecycle...")
-			startCollecting(queue["__header"].job)
+			if(typeof queue["__header"].job != 'undefined' && typeof queue[queue["__header"].job] != 'undefined')
+				{
+     			startCollecting(queue["__header"].job)
+				}else{
+					console.log('Server not IDLE but no job specified(server recovering after crash?)... Setting to IDLE')
+					queue["__header"].status = 'idle'
+					fs.writeFile(QUEUE_FILE, JSON.stringify(queue, null, 4), function(err){
+						if(err) console.error(err);
+					});
+				}
+
 		}
-	})
+	});
 }
 
 //connect to Amazon Product Advertisement API with aws ID and aws Secret Key
@@ -98,7 +108,6 @@ function startCollecting(keyword){
 				initiateTimeOut(0,ReqAmazonWithTimeout_ALL,jsonResult,'',0)      
 			};
 		});
-
 	})
 
 }
@@ -246,6 +255,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 
 app.post('/data', function(req, res) {         
+	if(/^[a-z|0-9|\s]+$/i.test(req.body.keyword.toString())){
 	fs.readFile(QUEUE_FILE, function(err,data){
 		if(err){
 
@@ -297,7 +307,7 @@ app.post('/data', function(req, res) {
 			}
 
 	});
-
+	}
 });
 
 
