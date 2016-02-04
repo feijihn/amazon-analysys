@@ -114,7 +114,7 @@ function startCollecting(keyword){
 
 
 function initiateTimeOut(i, func, array, index, j) {
-	setTimeout(function() { func(i, array, index, j) }, 500);
+	setTimeout(function() { func(i, array, index, j) }, 100);
 }
 
 function ReqAmazonWithTimeout_ALL(i, array, index, j){

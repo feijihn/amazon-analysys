@@ -77,6 +77,9 @@ var App = React.createClass({
 	},
 	clearResults: function() {
 		this.refreshQueue()
+		this.setState({
+			queueOpen: queueOpen
+		})
 	},
 	render: function() { 
 		return (
